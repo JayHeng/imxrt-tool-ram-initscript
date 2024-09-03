@@ -26,7 +26,6 @@ void Load_Dcdc_Trim()
   reg = MEM_ReadU32(ocotp_fuse_bank0_base + 0x90);
   if (reg & (1<<10))
   {
-      // DCDC: REG0->VBG_TRM
       trim_value = (reg & (0x1F << 11)) >> 11;
       reg = (MEM_ReadU32(dcdc_base + 0x4) & ~(0x1F << 24)) | (trim_value << 24);
       MEM_WriteU32(dcdc_base + 0x4, reg);
@@ -40,7 +39,6 @@ void Load_Dcdc_Trim()
     index = (reg & (3 << 28)) >> 28;
     if (index < 4)
     {
-      // DCDC: REG3->TRG 
       reg = (MEM_ReadU32(dcdc_base + 0xC) & ~(0x1F)) | (0xF + index);
       MEM_WriteU32(dcdc_base + 0xC, reg);
       dcdc_trim_loaded = 1;
@@ -303,21 +301,21 @@ void ConfigTargetSettings(void)
 void SetupTarget(void) {
 
   Report("Enabling S27KS0642 HyperRam");
-//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
   Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
+  Clock_Init();
   _Flexspi_pin_mux ();
   _hyper_Init();  
-  Clock_Init();
 }
 
 /* AfterResetTarget */
 void AfterResetTarget(void) {
 
-//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
   Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
+  Clock_Init();
   _Flexspi_pin_mux ();
   _hyper_Init();  
-  Clock_Init();
 }
