@@ -1,0 +1,214 @@
+/*
+ * Copyright 2018 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * o Redistributions of source code must retain the above copyright notice, this list
+ *   of conditions and the following disclaimer.
+ *
+ * o Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ * o Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+_load_dcdc_trim()
+{
+  __var ocotp_base;
+  __var ocotp_fuse_bank0_base;
+  __var dcdc_base;
+  __var reg;
+  __var trim_value;
+  __var dcdc_trim_loaded;
+  __var index;
+
+  ocotp_base = 0x401F4000;
+  ocotp_fuse_bank0_base = 0x401F4000 + 0x400;
+  dcdc_base = 0x40080000;
+
+  dcdc_trim_loaded = 0;
+
+  reg = __readMemory32(ocotp_fuse_bank0_base + 0x90, "Memory");
+  if (reg & (1<<10))
+  {
+      // DCDC: REG0->VBG_TRM
+      trim_value = (reg & (0x1F << 11)) >> 11;
+      reg = (__readMemory32(dcdc_base + 0x4, "Memory") & ~(0x1F << 24)) | (trim_value << 24);
+      __writeMemory32(reg, dcdc_base + 0x4, "Memory");
+      dcdc_trim_loaded = 1;
+  }
+
+  reg = __readMemory32(ocotp_fuse_bank0_base + 0x80, "Memory");
+  if (reg & (1<<30))
+  {
+    index = (reg & (3 << 28)) >> 28;
+    if (index < 4)
+    {
+      // DCDC: REG3->TRG 
+      reg = (__readMemory32(dcdc_base + 0xC, "Memory") & ~(0x1F)) | (0xF + index);
+      __writeMemory32(reg, dcdc_base + 0xC, "Memory");
+      dcdc_trim_loaded = 1;
+    }
+  }
+
+  if (dcdc_trim_loaded)
+  {
+      // delay 1ms for dcdc to get stable
+      __delay(1);
+      __message "DCDC trim value loaded.\n";
+  }
+
+}
+
+_Flexspi_reset()
+{
+  __var reg;
+   reg = __readMemory32(0x402A8000, "Memory");
+  __writeMemory32((reg | 0x1), 0x402A8000, "Memory");   
+  do
+  {
+    reg = __readMemory32(0x402A8000, "Memory");
+  }while((reg & 0x1) != 0); 
+}
+
+_clock_init()
+{
+  __var reg;
+  // Enable all clocks
+  __writeMemory32(0xffffffff, 0x400FC068, "Memory");
+  __writeMemory32(0xffffffff, 0x400FC06C, "Memory");
+  __writeMemory32(0xffffffff, 0x400FC070, "Memory");
+  __writeMemory32(0xffffffff, 0x400FC074, "Memory");
+  __writeMemory32(0xffffffff, 0x400FC078, "Memory");
+  __writeMemory32(0xffffffff, 0x400FC07C, "Memory");
+  __writeMemory32(0xffffffff, 0x400FC080, "Memory");
+  //__writeMemory32(0xffffffff, 0x400FC084, "Memory");
+
+  // Config PLL for FlexSPI
+  // PERCLK_PODF: 1 divide by 2
+  __writeMemory32(0x04900001, 0x400FC01C, "Memory");
+  // Enable SYS PLL but keep it bypassed.
+  __writeMemory32(0x00012001, 0x400D8030, "Memory");
+  do
+  {
+    reg = __readMemory32(0x400D8030, "Memory");
+  }while((reg & 0x80000000) == 0);
+  // Disable bypass of SYS PLL
+  __writeMemory32(0x00002001, 0x400D8030, "Memory");
+  
+  // PFD2_FRAC: 29, PLL2 PFD2=528*18/PFD2_FRAC=327
+  // Ungate SYS PLL PFD2
+  __writeMemory32(0x001D0000, 0x400D8100, "Memory");
+  
+  __writeMemory32(0x44100001, 0x400FC01C, "Memory");//divide by 1
+  
+  __message "clock init done\n";
+}
+
+_hyper_Init()
+{
+  // Config IOMUX for HyperRAM
+  __writeMemory32(0x00000011, 0x401F81D4, "Memory");// SD_B1_00
+  __writeMemory32(0x00000011, 0x401F81D8, "Memory");// SD_B1_01
+  __writeMemory32(0x00000011, 0x401F81DC, "Memory");// SD_B1_02
+  __writeMemory32(0x00000011, 0x401F81E0, "Memory");// SD_B1_03
+  __writeMemory32(0x00000011, 0x401F81E4, "Memory");// SD_B1_04
+  __writeMemory32(0x00000011, 0x401F81E8, "Memory");// SD_B1_05
+  __writeMemory32(0x00000011, 0x401F81EC, "Memory");// SD_B1_06
+  __writeMemory32(0x00000011, 0x401F81F0, "Memory");// SD_B1_07
+  __writeMemory32(0x00000011, 0x401F81F4, "Memory");// SD_B1_08
+  __writeMemory32(0x00000011, 0x401F81F8, "Memory");// SD_B1_09
+  __writeMemory32(0x00000011, 0x401F81FC, "Memory");// SD_B1_10
+  __writeMemory32(0x00000011, 0x401F8200, "Memory");// SD_B1_11
+  
+  
+  // PAD ctrl
+  __writeMemory32(0x000110F9, 0x401F83C4, "Memory");// SD_B1_00
+  __writeMemory32(0x000110F9, 0x401F83C8, "Memory");// SD_B1_01
+  __writeMemory32(0x000110F9, 0x401F83CC, "Memory");// SD_B1_02
+  __writeMemory32(0x000110F9, 0x401F83D0, "Memory");// SD_B1_03
+  __writeMemory32(0x000110F9, 0x401F83D4, "Memory");// SD_B1_04
+  __writeMemory32(0x000110F9, 0x401F83D8, "Memory");// SD_B1_05
+  __writeMemory32(0x000110F9, 0x401F83DC, "Memory");// SD_B1_06
+  __writeMemory32(0x000110F9, 0x401F83E0, "Memory");// SD_B1_07
+  __writeMemory32(0x000110F9, 0x401F83E4, "Memory");// SD_B1_08
+  __writeMemory32(0x000110F9, 0x401F83E8, "Memory");// SD_B1_09
+  __writeMemory32(0x000110F9, 0x401F83EC, "Memory");// SD_B1_10
+  __writeMemory32(0x000110F9, 0x401F83F0, "Memory");// SD_B1_11
+
+  // Config FlexSPI Registers
+
+  __writeMemory32(0xFFFF80C0, 0x402A8000, "Memory"); // MCR0
+  _Flexspi_reset();
+  __writeMemory32(0xFFFF3032, 0x402A8000, "Memory"); // MCR0
+  __writeMemory32(0xFFFFFFFF, 0x402A8004, "Memory"); // MCR1
+  __writeMemory32(0x200001F7, 0x402A8008, "Memory"); // MCR2
+  __writeMemory32(0x00000078, 0x402A800C, "Memory"); // AHBCR
+  __writeMemory32(0x80000020, 0x402A8020, "Memory"); // AHBRXBUFCR00
+  __writeMemory32(0x80000020, 0x402A8024, "Memory"); // AHBRXBUFCR01
+  __writeMemory32(0x80000020, 0x402A8028, "Memory"); // AHBRXBUFCR02
+  __writeMemory32(0x80000020, 0x402A802C, "Memory"); // AHBRXBUFCR03
+  __writeMemory32(0x00000000, 0x402A80B8, "Memory"); // IPRXFCR
+  __writeMemory32(0x00000000, 0x402A80BC, "Memory"); // IPTXFCR
+  __writeMemory32(0x00002000, 0x402A8060, "Memory"); // FLASHA1CR0
+  __writeMemory32(0x00021C63, 0x402A8070, "Memory"); // FLASHA1CR1
+  __writeMemory32(0x00000100, 0x402A8080, "Memory"); // FLASHA1CR2
+  __writeMemory32(0x00001D00, 0x402A80C0, "Memory"); // DLLCR
+  __writeMemory32(0x00000000, 0x402A8094, "Memory"); // FLASHA1CR4 
+  __writeMemory32(0x00000004, 0x402A8094, "Memory"); // FLASHA1CR4 
+  __writeMemory32(0xFFFF3030, 0x402A8000, "Memory"); // MCR0
+  __writeMemory32(0x5AF05AF0, 0x402A8018, "Memory"); // LUTKEY
+  __writeMemory32(0x00000002, 0x402A801C, "Memory"); // LUTCR
+  __writeMemory32(0x8B1887A0, 0x402A8200, "Memory"); // LUT[0]
+  __writeMemory32(0xB7078F10, 0x402A8204, "Memory"); // LUT[1]
+  __writeMemory32(0x0000A704, 0x402A8208, "Memory"); // LUT[2]
+  __writeMemory32(0x00000000, 0x402A820C, "Memory"); // LUT[3] 
+  __writeMemory32(0x8B188720, 0x402A8210, "Memory"); // LUT[4]
+  __writeMemory32(0xB7078F10, 0x402A8214, "Memory"); // LUT[5]
+  __writeMemory32(0x0000A304, 0x402A8218, "Memory"); // LUT[6]
+  __writeMemory32(0x00000000, 0x402A821C, "Memory"); // LUT[7]
+  __writeMemory32(0x8B1887E0, 0x402A8220, "Memory"); // LUT[8]
+  __writeMemory32(0xB7078F10, 0x402A8224, "Memory"); // LUT[9]
+  __writeMemory32(0x0000A704, 0x402A8228, "Memory"); // LUT[10]
+  __writeMemory32(0x00000000, 0x402A822C, "Memory"); // LUT[11]
+  __writeMemory32(0x8B188760, 0x402A8230, "Memory"); // LUT[12]
+  __writeMemory32(0xA3048F10, 0x402A8234, "Memory"); // LUT[13]
+  __writeMemory32(0x00000000, 0x402A8238, "Memory"); // LUT[14]
+  __writeMemory32(0x00000000, 0x402A823C, "Memory"); // LUT[15]
+  __writeMemory32(0x5AF05AF0, 0x402A8018, "Memory"); // LUTKEY
+  __writeMemory32(0x00000001, 0x402A801C, "Memory"); // LUTCR
+ 
+  _Flexspi_reset();
+  
+  __message "HyperRAM init done\n";
+}
+
+execUserPreload()
+{
+  _load_dcdc_trim();
+  _clock_init();
+  _hyper_Init();
+}
+
+execUserReset()
+{
+  _load_dcdc_trim(); 
+  _clock_init();
+  _hyper_Init();
+}
+
