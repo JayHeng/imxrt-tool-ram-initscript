@@ -1,0 +1,323 @@
+/*
+ * Copyright 2017-2020 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+// S27KS0642 HyperRam initialization.
+ 
+void Load_Dcdc_Trim()
+{
+  unsigned int ocotp_base;  
+  unsigned int dcdc_base;  
+  unsigned int ocotp_fuse_bank0_base;  
+  unsigned int reg;
+  unsigned int index;
+  unsigned int trim_value;
+  unsigned int dcdc_trim_loaded;
+
+  ocotp_base = 0x401F4000;
+  ocotp_fuse_bank0_base = 0x401F4000 + 0x400;
+  dcdc_base = 0x40080000;
+
+  dcdc_trim_loaded = 0;
+
+  reg = MEM_ReadU32(ocotp_fuse_bank0_base + 0x90);
+  if (reg & (1<<10))
+  {
+      // DCDC: REG0->VBG_TRM
+      trim_value = (reg & (0x1F << 11)) >> 11;
+      reg = (MEM_ReadU32(dcdc_base + 0x4) & ~(0x1F << 24)) | (trim_value << 24);
+      MEM_WriteU32(dcdc_base + 0x4, reg);
+      dcdc_trim_loaded = 1;
+  }
+
+  // DCDC_VOLT_CHANG_EN
+  reg = MEM_ReadU32(ocotp_fuse_bank0_base + 0x80);
+  if (reg & (1<<30))
+  {
+    index = (reg & (3 << 28)) >> 28;
+    if (index < 4)
+    {
+      // DCDC: REG3->TRG 
+      reg = (MEM_ReadU32(dcdc_base + 0xC) & ~(0x1F)) | (0xF + index);
+      MEM_WriteU32(dcdc_base + 0xC, reg);
+      dcdc_trim_loaded = 1;
+    }
+  }
+
+  if (dcdc_trim_loaded)
+  {
+      // delay 1ms for dcdc to get stable
+      SYS_Sleep(1);
+      Report("DCDC trim value loaded.");
+  }
+}
+
+void _Flexspi_pin_mux ()
+{
+  Report("PIN mux started...");
+
+  // IOMUXC_SetPinMux ()
+  MEM_WriteU32(0x401f81d4, 0x00000011);		// IOMUXC_GPIO_SD_B1_00_FLEXSPIB_DATA03
+  MEM_WriteU32(0x401f84c4, 0x00000000);
+
+  MEM_WriteU32(0x401f81d8, 0x00000011);		// IOMUXC_GPIO_SD_B1_01_FLEXSPIB_DATA02
+  MEM_WriteU32(0x401f84c0, 0x00000000);
+  
+  MEM_WriteU32(0x401f81dc, 0x00000011);		// IOMUXC_GPIO_SD_B1_02_FLEXSPIB_DATA01
+  MEM_WriteU32(0x401f84bc, 0x00000000);
+
+  MEM_WriteU32(0x401f81e0, 0x00000011);		// IOMUXC_GPIO_SD_B1_03_FLEXSPIB_DATA00
+  MEM_WriteU32(0x401f84b8, 0x00000000);
+
+  MEM_WriteU32(0x401f81e4, 0x00000011);		// IOMUXC_GPIO_SD_B1_04_FLEXSPIB_SCLK
+
+  MEM_WriteU32(0x401f81e8, 0x00000011);		// IOMUXC_GPIO_SD_B1_05_FLEXSPIA_DQS
+  MEM_WriteU32(0x401f84a4, 0x00000000);
+
+  MEM_WriteU32(0x401f81ec, 0x00000011);		// IOMUXC_GPIO_SD_B1_06_FLEXSPIA_SS0_B
+
+  MEM_WriteU32(0x401f81f0, 0x00000011);		// IOMUXC_GPIO_SD_B1_07_FLEXSPIA_SCLK
+  MEM_WriteU32(0x401f84c8, 0x00000000);
+
+  MEM_WriteU32(0x401f81f4, 0x00000011);		// IOMUXC_GPIO_SD_B1_08_FLEXSPIA_DATA00
+  MEM_WriteU32(0x401f84a8, 0x00000000);
+
+  MEM_WriteU32(0x401f81f8, 0x00000011);		// IOMUXC_GPIO_SD_B1_09_FLEXSPIA_DATA01
+  MEM_WriteU32(0x401f84ac, 0x00000000);
+
+  MEM_WriteU32(0x401f81fc, 0x00000011);		// IOMUXC_GPIO_SD_B1_10_FLEXSPIA_DATA02
+  MEM_WriteU32(0x401f84b0, 0x00000000);
+
+  MEM_WriteU32(0x401f8200, 0x00000011);		// IOMUXC_GPIO_SD_B1_11_FLEXSPIA_DATA03
+  MEM_WriteU32(0x401f84b4, 0x00000000);
+
+  // IOMUXC_SetPinConfig ()
+  MEM_WriteU32(0x401f83c4, 0x000110f9);		// IOMUXC_GPIO_SD_B1_00_FLEXSPIB_DATA03
+  MEM_WriteU32(0x401f83c8, 0x000110f9);		// IOMUXC_GPIO_SD_B1_01_FLEXSPIB_DATA02
+  MEM_WriteU32(0x401f83cc, 0x000110f9);		// IOMUXC_GPIO_SD_B1_02_FLEXSPIB_DATA01
+  MEM_WriteU32(0x401f83d0, 0x000110f9);		// IOMUXC_GPIO_SD_B1_03_FLEXSPIB_DATA00
+  MEM_WriteU32(0x401f83d4, 0x000110f9);		// IOMUXC_GPIO_SD_B1_04_FLEXSPIB_SCLK
+  MEM_WriteU32(0x401f83d8, 0x000110f9);		// IOMUXC_GPIO_SD_B1_05_FLEXSPIA_DQS
+  MEM_WriteU32(0x401f83dc, 0x000110f9);		// IOMUXC_GPIO_SD_B1_06_FLEXSPIA_SS0_B
+  MEM_WriteU32(0x401f83e0, 0x000110f9);		// IOMUXC_GPIO_SD_B1_07_FLEXSPIA_SCLK
+  MEM_WriteU32(0x401f83e4, 0x000110f9);		// IOMUXC_GPIO_SD_B1_08_FLEXSPIA_DATA00
+  MEM_WriteU32(0x401f83e8, 0x000110f9);		// IOMUXC_GPIO_SD_B1_09_FLEXSPIA_DATA01
+  MEM_WriteU32(0x401f83ec, 0x000110f9);		// IOMUXC_GPIO_SD_B1_10_FLEXSPIA_DATA02
+  MEM_WriteU32(0x401f83f0, 0x000110f9);		// IOMUXC_GPIO_SD_B1_11_FLEXSPIA_DATA03
+
+  Report("PIN mux finished!");
+}
+ 
+void _Flexspi_mpu()
+{
+  Report("MPU started...");
+
+  // ARM_MPU_Disable ()
+  MEM_WriteU32(0xe000ed24, 0x00000000);		// SCB->SHCSR
+  MEM_WriteU32(0xe000ed94, 0x00000000);		// MPU->CTRL
+	
+
+//  MEM_WriteU32(0xE000ED9C, 0x70000018);		// 0x60000012
+//  MEM_WriteU32(0xE000EDA0, 0x0303002d); 	// 0x0303002d
+
+/* Region 0 setting: Memory with Device type, not shareable, non-cacheable. */
+  MEM_WriteU32(0xE000ED9C, 0x80000010);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03100039); 	// MPU->RASR
+
+/* Region 1 setting: Memory with Device type, not shareable,  non-cacheable. */
+  MEM_WriteU32(0xE000ED9C, 0x60000011);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03100039); 	// MPU->RASR
+  
+/* Region 2 setting: Memory with Normal type, not shareable, outer/inner write back. */  
+  MEM_WriteU32(0xE000ED9C, 0x60000012);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x0303002d); 	// MPU->RASR
+
+/* Region 3 setting: Memory with Device type, not shareable, non-cacheable. */
+  MEM_WriteU32(0xE000ED9C, 0x00000013);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x0310003b); 	// MPU->RASR
+
+/* Region 4 setting: Memory with Normal type, not shareable, outer/inner write back */
+  MEM_WriteU32(0xE000ED9C, 0x00000014);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03030021); 	// MPU->RASR
+
+/* Region 5 setting: Memory with Normal type, not shareable, outer/inner write back */
+  MEM_WriteU32(0xE000ED9C, 0x20000015);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03030021); 	// MPU->RASR
+  
+/* Region 6 setting: Memory with Normal type, not shareable, outer/inner write back */
+  MEM_WriteU32(0xE000ED9C, 0x20200016);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03030025); 	// MPU->RASR
+  
+/* Region 7 setting: Memory with Normal type, not shareable, outer/inner write back */
+  MEM_WriteU32(0xE000ED9C, 0x20280017);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03030023); 	// MPU->RASR
+
+/* Region 8 setting: Memory with Normal type, not shareable, outer/inner write back */
+  MEM_WriteU32(0xE000ED9C, 0x80000018);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x03030031); 	// MPU->RASR
+
+/* Region 9 setting: Memory with Normal type, not shareable, non-cacheable */
+  MEM_WriteU32(0xE000ED9C, 0x81e00019);		// MPU->RBAR
+  MEM_WriteU32(0xE000EDA0, 0x0308003f); 	// MPU->RASR
+  
+//  MEM_WriteU32(0xE000ED9C, 0x70600019);
+//  MEM_WriteU32(0xE000EDA0, 0x03080029);
+
+  MEM_WriteU32(0xE000ED94, 0x00000005);		// MPU->CTRL; e.g. ARM_MPU_Enable ()
+  MEM_WriteU32(0xe000ed24, 0x00010000);		// SCB->SHCSR
+
+  Report("MPU finished!");
+}
+
+void _Flexspi_reset()
+{
+  unsigned int reg;
+   reg = MEM_ReadU32(0x402A8000);
+  MEM_WriteU32(0x402A8000, (reg | 0x1));   
+  do
+  {
+    reg = MEM_ReadU32(0x402A8000);
+  }while((reg & 0x1) != 0); 
+}
+
+void Clock_Init() 
+{
+  unsigned int reg;
+  // Enable all clocks
+  MEM_WriteU32(0x400FC068,0xffffffff);
+  MEM_WriteU32(0x400FC06C,0xffffffff);
+  MEM_WriteU32(0x400FC070,0xffffffff);
+  MEM_WriteU32(0x400FC074,0xffffffff);
+  MEM_WriteU32(0x400FC078,0xffffffff);
+  MEM_WriteU32(0x400FC07C,0xffffffff);
+  MEM_WriteU32(0x400FC080,0xffffffff);
+  //MEM_WriteU32(0x400FC084,0xffffffff);
+
+  // Config PLL for FlexSPI
+  // PERCLK_PODF: 1 divide by 2
+  MEM_WriteU32(0x400FC01C, 0x04900001);
+  // Enable SYS PLL but keep it bypassed.
+  MEM_WriteU32(0x400D8030, 0x00012001);
+  do
+  {
+    reg = MEM_ReadU32(0x400D8030);
+  }while((reg & 0x80000000) == 0);
+  // Disable bypass of SYS PLL
+  MEM_WriteU32(0x400D8030, 0x00002001);			// Changes form 24MHz -> 327.72 MHz, which results FlexSPI to 163.86 MHz.
+  
+  // PFD2_FRAC: 29(0x1D), PLL2 PFD2=528*18/PFD2_FRAC=327
+  // Ungate SYS PLL PFD2
+  reg = MEM_ReadU32(0x400D8100);
+  reg &= ~0xBF0000;
+  reg |= 0x1D0000;
+  MEM_WriteU32(0x400D8100, reg);
+
+	MEM_WriteU32(0x400FC01C, 0x44100001);//divide by 1; 
+
+  Report("Clock Init Done");
+}
+
+void _hyper_Init()
+{
+  // Config FlexSPI Registers								
+
+  MEM_WriteU32(0x402A8000, 0xFFFF80C0); // MCR0				// 0xffff80c0 
+  _Flexspi_reset();
+  MEM_WriteU32(0x402A8000, 0xFFFF3032); // MCR0				// 0xffff3032
+  MEM_WriteU32(0x402A8004, 0xFFFFFFFF); // MCR1				// 0xffffffff
+  MEM_WriteU32(0x402A8008, 0x200001f7); // MCR2				// 0x200001F7
+  MEM_WriteU32(0x402A800C, 0x00000078); // AHBCR			// 0x00000078
+  MEM_WriteU32(0x402A8020, 0x800f0000); // AHBRXBUFCR00		
+  MEM_WriteU32(0x402A8024, 0x800f0000); // AHBRXBUFCR01		
+  MEM_WriteU32(0x402A8028, 0x80000020); // AHBRXBUFCR02		
+  MEM_WriteU32(0x402A802C, 0x80000020); // AHBRXBUFCR03		
+  MEM_WriteU32(0x402A80B8, 0x00000000); // IPRXFCR			// 0x00000000
+  MEM_WriteU32(0x402A80BC, 0x00000000); // IPTXFCR			// 0x00000000
+  MEM_WriteU32(0x402A8060, 0x00002000); // FLASHA1CR0		// 0x00002000
+  MEM_WriteU32(0x402A8070, 0x00021C63); // FLASHA1CR1		// 0x00021c63
+  MEM_WriteU32(0x402A8080, 0x00000100); // FLASHA1CR2		// 0x00000100
+  MEM_WriteU32(0x402A80C0, 0x00000079); // DLLCR			// 0x00000079
+//  MEM_WriteU32(0x402A80C0, 0x00001D00); // DLLCR			// 
+  MEM_WriteU32(0x402A8094, 0x00000000); // FLASHA1CR4 		// 
+  MEM_WriteU32(0x402A8094, 0x00000004); // FLASHA1CR4 		// 0x00000004
+  MEM_WriteU32(0x402A8000, 0xFFFF3030); // MCR0				// 0xffff3030	/* Exit stop mode. */
+  MEM_WriteU32(0x402A8018, 0x5AF05AF0); // LUTKEY			// 0x5af05af0
+  MEM_WriteU32(0x402A801C, 0x00000002); // LUTCR			// 0x00000002
+  MEM_WriteU32(0x402A8200, 0x8B1887A0); // LUT[0]			// 0x8b1887a0
+  MEM_WriteU32(0x402A8204, 0xb7078f10); // LUT[1]			//
+  MEM_WriteU32(0x402A8208, 0x0000A704); // LUT[2]			// 0x0000a704
+  MEM_WriteU32(0x402A820C, 0x00000000); // LUT[3] 			// 0x00000000
+  MEM_WriteU32(0x402A8210, 0x8B188720); // LUT[4]			// 0x8b188720
+  MEM_WriteU32(0x402A8214, 0xb7078f10); // LUT[5]			// 
+  MEM_WriteU32(0x402A8218, 0x0000A304); // LUT[6]			// 0x0000a304
+  MEM_WriteU32(0x402A821C, 0x00000000); // LUT[7]			// 0x00000000
+  MEM_WriteU32(0x402A8220, 0x8B1887E0); // LUT[8]			// 0x8b1887e0
+  MEM_WriteU32(0x402A8224, 0xb7078f10); // LUT[9]			// 
+  MEM_WriteU32(0x402A8228, 0x0000A704); // LUT[10]			// 0x0000a704
+  MEM_WriteU32(0x402A822C, 0x00000000); // LUT[11]			// 0x00000000
+  MEM_WriteU32(0x402A8230, 0x8B188760); // LUT[12]			// 0x8b188760
+  MEM_WriteU32(0x402A8234, 0xa3048f10); // LUT[13]			//
+  MEM_WriteU32(0x402A8238, 0x00000000); // LUT[14]			// 
+  MEM_WriteU32(0x402A823C, 0x00000000); // LUT[15]			// 0x00000000
+  MEM_WriteU32(0x402A8240, 0x00000000); // LUT[16]			// 0x00000000
+  MEM_WriteU32(0x402A8244, 0x00000000); // LUT[17]			// 0x00000000
+  MEM_WriteU32(0x402A8248, 0x00000000); // LUT[18]			// 0x00000000
+  MEM_WriteU32(0x402A824C, 0x00000000); // LUT[19]			// 0x00000000
+  MEM_WriteU32(0x402A8018, 0x5AF05AF0); // LUTKEY			// 0x5af05af0
+  MEM_WriteU32(0x402A801C, 0x00000001); // LUTCR			// 0x00000001
+ 
+  _Flexspi_reset();
+  
+  Report("HyperRAM init done\n");
+}
+
+void RestoreFlexRAM()
+{
+    unsigned int base;
+    unsigned int value;
+
+    base = 0x400AC000;
+
+    value = MEM_ReadU32(base + 0x44);
+    value &= ~(0xFFFFFFFF);
+    value |= 0x55AFFA55;
+    MEM_WriteU32(base + 0x44, value);
+
+    value = MEM_ReadU32(base + 0x40);
+    value |= (1 << 2);
+    MEM_WriteU32(base + 0x40, value);
+    Report("FlexRAM configuration is restored");
+}
+
+/* ConfigTarget */
+void ConfigTargetSettings(void)
+{
+  Report("Config JTAG Speed to 4000kHz");
+  JTAG_Speed = 4000;
+}
+
+/* SetupTarget */
+void SetupTarget(void) {
+
+  Report("Enabling S27KS0642 HyperRam");
+//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  Load_Dcdc_Trim();
+//  _Flexspi_mpu();		
+  _Flexspi_pin_mux ();
+  _hyper_Init();  
+  Clock_Init();
+}
+
+/* AfterResetTarget */
+void AfterResetTarget(void) {
+
+//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  Load_Dcdc_Trim();
+//  _Flexspi_mpu();		
+  _Flexspi_pin_mux ();
+  _hyper_Init();  
+  Clock_Init();
+}
