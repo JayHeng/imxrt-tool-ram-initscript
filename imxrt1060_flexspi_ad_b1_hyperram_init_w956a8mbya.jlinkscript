@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-// S27KS0642 HyperRam initialization.
+// W956A8MBYA HyperRam initialization.
  
 void Load_Dcdc_Trim()
 {
@@ -57,13 +57,12 @@ void Load_Dcdc_Trim()
 
 void _Flexspi_pin_mux()
 {
-  Report("PIN mux started...");
+  Report("AD_B1_xx Pad PIN mux started...");
   
     ///////////////////
     // Hyper RAM START
     //////////////////
 
-	
     // IOMUXC_SetPinMux () 
     MEM_WriteU32(0x401F810C, 0x00001000);		// IOMUXC_GPIO_AD_B1_04_FLEXSPIB_DATA03
     MEM_WriteU32(0x401F84C4, 0x00000001);
@@ -113,7 +112,7 @@ void _Flexspi_pin_mux()
     //Hyper RAM END
     ///////////////////  
 
-  Report("PIN mux finished!");
+  Report("AD_B1_xx PIN mux finished!");
 }
  
 void _Flexspi_mpu()
@@ -222,7 +221,7 @@ void Clock_Init()
   reg |= 0x1D0000;
   MEM_WriteU32(0x400D8100, reg);
 
-	MEM_WriteU32(0x400FC01C, 0x44100001);//divide by 1; 
+  MEM_WriteU32(0x400FC01C, 0x44100001);//divide by 1; 
 
   Report("Clock Init Done");
 }
@@ -353,22 +352,22 @@ void ConfigTargetSettings(void)
 /* SetupTarget */
 void SetupTarget(void) {
 
-  Report("Enabling S27KS0642 HyperRam");
-//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
-///  Load_Dcdc_Trim();
+  Report("Enabling W956A8MBYA HyperRam");
+  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
+  Clock_Init();
   _Flexspi_pin_mux();
   _hyper_Init();  
-  Clock_Init();
 }
 
 /* AfterResetTarget */
 void AfterResetTarget(void) {
 
-//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
-///  Load_Dcdc_Trim();
+  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
+  Clock_Init();
   _Flexspi_pin_mux();
   _hyper_Init();  
-  Clock_Init();
 }

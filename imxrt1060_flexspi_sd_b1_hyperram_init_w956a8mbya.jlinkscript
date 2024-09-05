@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-// S27KS0642 HyperRam initialization.
+// W956A8MBYA HyperRam initialization.
  
 void Load_Dcdc_Trim()
 {
@@ -26,7 +26,6 @@ void Load_Dcdc_Trim()
   reg = MEM_ReadU32(ocotp_fuse_bank0_base + 0x90);
   if (reg & (1<<10))
   {
-      // DCDC: REG0->VBG_TRM
       trim_value = (reg & (0x1F << 11)) >> 11;
       reg = (MEM_ReadU32(dcdc_base + 0x4) & ~(0x1F << 24)) | (trim_value << 24);
       MEM_WriteU32(dcdc_base + 0x4, reg);
@@ -40,7 +39,6 @@ void Load_Dcdc_Trim()
     index = (reg & (3 << 28)) >> 28;
     if (index < 4)
     {
-      // DCDC: REG3->TRG 
       reg = (MEM_ReadU32(dcdc_base + 0xC) & ~(0x1F)) | (0xF + index);
       MEM_WriteU32(dcdc_base + 0xC, reg);
       dcdc_trim_loaded = 1;
@@ -57,8 +55,7 @@ void Load_Dcdc_Trim()
 
 void _Flexspi_pin_mux()
 {
-  Report("PIN mux started...");
-  Report("PIN mux started...");
+  Report("SD_B1_xx Pad PIN mux started...");
 
   // IOMUXC_SetPinMux ()
   MEM_WriteU32(0x401f81d4, 0x00000011);		// IOMUXC_GPIO_SD_B1_00_FLEXSPIB_DATA03
@@ -106,7 +103,7 @@ void _Flexspi_pin_mux()
   MEM_WriteU32(0x401f83ec, 0x000110f9);		// IOMUXC_GPIO_SD_B1_10_FLEXSPIA_DATA02
   MEM_WriteU32(0x401f83f0, 0x000110f9);		// IOMUXC_GPIO_SD_B1_11_FLEXSPIA_DATA03
 
-  Report("PIN mux finished!");
+  Report("SD_B1_xx Pad PIN mux finished!");
 }
  
 void _Flexspi_mpu()
@@ -346,22 +343,22 @@ void ConfigTargetSettings(void)
 /* SetupTarget */
 void SetupTarget(void) {
 
-  Report("Enabling S27KS0642 HyperRam");
-//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
-///  Load_Dcdc_Trim();
+  Report("Enabling W956A8MBYA HyperRam");
+  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
+  Clock_Init();
   _Flexspi_pin_mux();
   _hyper_Init();  
-  Clock_Init();
 }
 
 /* AfterResetTarget */
 void AfterResetTarget(void) {
 
-//  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
-///  Load_Dcdc_Trim();
+  RestoreFlexRAM();	// From evkbimxrt1050_sdram_init.jlinkscript.
+  Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
+  Clock_Init();
   _Flexspi_pin_mux();
   _hyper_Init();  
-  Clock_Init();
 }
