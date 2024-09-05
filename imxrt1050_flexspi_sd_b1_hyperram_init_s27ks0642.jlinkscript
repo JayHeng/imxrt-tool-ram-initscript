@@ -53,9 +53,9 @@ void Load_Dcdc_Trim()
   }
 }
 
-void _Flexspi_pin_mux ()
+void _Flexspi_pin_mux()
 {
-  Report("PIN mux started...");
+  Report("SD_B1_xx Pad PIN mux started...");
 
   // IOMUXC_SetPinMux ()
   MEM_WriteU32(0x401f81d4, 0x00000011);		// IOMUXC_GPIO_SD_B1_00_FLEXSPIB_DATA03
@@ -106,7 +106,7 @@ void _Flexspi_pin_mux ()
   MEM_WriteU32(0x401f83ec, 0x000110f9);		// IOMUXC_GPIO_SD_B1_10_FLEXSPIA_DATA02
   MEM_WriteU32(0x401f83f0, 0x000110f9);		// IOMUXC_GPIO_SD_B1_11_FLEXSPIA_DATA03
 
-  Report("PIN mux finished!");
+  Report("SD_B1_xx Pad PIN mux finished!");
 }
  
 void _Flexspi_mpu()
@@ -213,7 +213,7 @@ void Clock_Init()
   reg |= 0x1D0000;
   MEM_WriteU32(0x400D8100, reg);
 
-	MEM_WriteU32(0x400FC01C, 0x44100001);//divide by 1; 
+  MEM_WriteU32(0x400FC01C, 0x44100001);//divide by 1; 
 
   Report("Clock Init Done");
 }
@@ -305,7 +305,7 @@ void SetupTarget(void) {
   Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
   Clock_Init();
-  _Flexspi_pin_mux ();
+  _Flexspi_pin_mux();
   _hyper_Init();  
 }
 
@@ -316,6 +316,6 @@ void AfterResetTarget(void) {
   Load_Dcdc_Trim();
 //  _Flexspi_mpu();		
   Clock_Init();
-  _Flexspi_pin_mux ();
+  _Flexspi_pin_mux();
   _hyper_Init();  
 }
