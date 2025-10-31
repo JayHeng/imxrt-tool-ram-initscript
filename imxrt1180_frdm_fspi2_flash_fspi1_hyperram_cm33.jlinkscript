@@ -417,6 +417,137 @@ void _FLEXSPI2_WaitBusIdle()
     }
 }
 
+void _FLEXSPI2_SetPinForQuadMode(void) {
+    // Set 4 Pin Mode for JLink
+    // IOMUXC_GPIO_AON_21_FLEXSPI2_BUS2BIT_A_DQS
+    MEM_WriteU32(0x443C0054, 0x18);
+    // IOMUXC_GPIO_AON_23_FLEXSPI2_BUS2BIT_A_SCLK
+    MEM_WriteU32(0x443C0058, 0x10);
+    // IOMUXC_GPIO_AON_22_FLEXSPI2_BUS2BIT_A_SS0_B
+    MEM_WriteU32(0x443C005C, 0x10);
+    // IOMUXC_GPIO_AON_24_FLEXSPI2_BUS2BIT_A_DATA00
+    MEM_WriteU32(0x443C0060, 0x10);
+    // IOMUXC_GPIO_AON_25_FLEXSPI2_BUS2BIT_A_DATA01
+    MEM_WriteU32(0x443C0064, 0x10);
+    // IOMUXC_GPIO_AON_26_FLEXSPI2_BUS2BIT_A_DATA02
+    MEM_WriteU32(0x443C0068, 0x10);
+    // IOMUXC_GPIO_AON_27_FLEXSPI2_BUS2BIT_A_DATA03
+    MEM_WriteU32(0x443C006C, 0x10);
+}
+
+void _FLEXSPI2_ClockInit_Flash()
+{
+    _WriteViaCM33AP32(0x54484350, 0x0);  // ROSC400M_CTRL1
+    
+    // Set flexspi2 root clock, use ROSC400, div = 4 = 1+3
+    MEM_WriteU32(0x44450B00, 0x103);     // CLOCK_ROOT[22].CONTROL, FlexSPI2
+}
+
+void _FLEXSPI2_ModuleInit_Flash(void) {
+
+    unsigned int reg;
+    reg = MEM_ReadU32(0x445E0000);
+    MEM_WriteU32(0x445E0000, (reg & 0xFFFFFFFD));
+
+    //FLEXSPI1->MCR0 = 0xFFFF8010;
+    MEM_WriteU32(0x445E0000, 0xFFFF8010);
+    //FLEXSPI1->MCR2 = 0x200001F7;
+    MEM_WriteU32(0x445E0008, 0x200001F7);
+    //FLEXSPI1->AHBCR = 0x78;
+    MEM_WriteU32(0x445E000C, 0x78);
+    
+    //FLEXSPI1->FLSHCR0[0] = 0x00004000;
+    MEM_WriteU32(0x445E0060, 0x00004000);
+
+    
+    //FLEXSPI1->FLSHCR4 = 0xC3;
+    MEM_WriteU32(0x445E0094, 0xC3);
+    //FLEXSPI1->IPRXFCR = 0x1C;
+    MEM_WriteU32(0x445E00B8, 0x1C);
+    
+    //FLEXSPI1->LUTKEY = 0x5AF05AF0UL;
+    MEM_WriteU32(0x445E0018, 0x5AF05AF0);
+    //FLEXSPI1->LUTCR  = 0x02;
+    MEM_WriteU32(0x445E001C, 0x02);
+    
+    //FLEXSPI1->LUT[0] = 0x0A1804EB;  // AHB Quad Read Change to use Fast Read Quad
+    MEM_WriteU32(0x445E0200, 0x0A1804EB);
+    //FLEXSPI1->LUT[1] = 0x26043206;
+    MEM_WriteU32(0x445E0204, 0x26043206);
+    //FLEXSPI1->LUT[2] = 0x00000000;
+    MEM_WriteU32(0x445E0208, 0x00000000);
+    //FLEXSPI1->LUT[3] = 0x00000000;
+    MEM_WriteU32(0x445E020C, 0x00000000);
+    
+    //FLEXSPI1->LUT[4] = 0x00000406;  // Write Enable
+    MEM_WriteU32(0x445E0210, 0x00000406);
+    //FLEXSPI1->LUT[5] = 0x00000000;
+    MEM_WriteU32(0x445E0214, 0x00000000);
+    //FLEXSPI1->LUT[6] = 0x00000000;
+    MEM_WriteU32(0x445E0218, 0x00000000);
+    //FLEXSPI1->LUT[7] = 0x00000000;
+    MEM_WriteU32(0x445E021C, 0x00000000);
+    
+    //FLEXSPI1->LUT[8] = 0x20040401;  // Wirte s1
+    MEM_WriteU32(0x445E0220, 0x20040401);
+    //FLEXSPI1->LUT[9] = 0x00000000;
+    MEM_WriteU32(0x445E0224, 0x00000000);
+    //FLEXSPI1->LUT[10] = 0x00000000;
+    MEM_WriteU32(0x445E0228, 0x00000000);
+    //FLEXSPI1->LUT[11] = 0x00000000;
+    MEM_WriteU32(0x445E022C, 0x00000000);
+    
+    //FLEXSPI1->LUT[12] = 0x24040405;  // Read s1
+    MEM_WriteU32(0x445E0230, 0x24040405);
+    //FLEXSPI1->LUT[13] = 0x00000000;
+    MEM_WriteU32(0x445E0234, 0x00000000);
+    //FLEXSPI1->LUT[14] = 0x00000000;
+    MEM_WriteU32(0x445E0238, 0x00000000);
+    //FLEXSPI1->LUT[15] = 0x00000000;
+    MEM_WriteU32(0x445E023C, 0x00000000);
+    
+    //FLEXSPI1->LUT[16] = 0x00000404;  // Write Disable
+    MEM_WriteU32(0x445E0240, 0x00000404);
+    //FLEXSPI1->LUT[17] = 0x00000000;
+    MEM_WriteU32(0x445E0244, 0x00000000);
+    //FLEXSPI1->LUT[18] = 0x00000000;
+    MEM_WriteU32(0x445E0248, 0x00000000);
+    //FLEXSPI1->LUT[19] = 0x00000000;
+    MEM_WriteU32(0x445E024C, 0x00000000);
+    
+    //FLEXSPI1->LUT[20] = 0x20040431;  // Wirte s2
+    MEM_WriteU32(0x445E0250, 0x20040431);
+    //FLEXSPI1->LUT[21] = 0x00000000;
+    MEM_WriteU32(0x445E0254, 0x00000000);
+    //FLEXSPI1->LUT[22] = 0x00000000;
+    MEM_WriteU32(0x445E0258, 0x00000000);
+    //FLEXSPI1->LUT[23] = 0x00000000;
+    MEM_WriteU32(0x445E025C, 0x00000000);
+    
+    //FLEXSPI1->LUT[24] = 0x24040435;  // Read s2
+    MEM_WriteU32(0x445E0260, 0x24040435);
+    //FLEXSPI1->LUT[25] = 0x00000000;
+    MEM_WriteU32(0x445E0264, 0x00000000);
+    //FLEXSPI1->LUT[26] = 0x00000000;
+    MEM_WriteU32(0x445E0268, 0x00000000);
+    //FLEXSPI1->LUT[27] = 0x00000000;
+    MEM_WriteU32(0x445E026C, 0x00000000);
+    
+    //FLEXSPI1->LUT[28] = 0x00000450;  // Write Enable Volatile
+    MEM_WriteU32(0x445E0270, 0x00000450);
+    //FLEXSPI1->LUT[29] = 0x00000000;
+    MEM_WriteU32(0x445E0274, 0x00000000);
+    //FLEXSPI1->LUT[30] = 0x00000000;
+    MEM_WriteU32(0x445E0278, 0x00000000);
+    //FLEXSPI1->LUT[31] = 0x00000000;
+    MEM_WriteU32(0x445E027C, 0x00000000);
+    
+    //FLEXSPI1->LUTKEY = 0x5AF05AF0UL;
+    MEM_WriteU32(0x445E0018, 0x5AF05AF0);
+    //FLEXSPI1->LUTCR  = 0x01;
+    MEM_WriteU32(0x445E001C, 0x01);
+}
+
 void _FlexSPI2_SetPinForOctalMode()
 {
     // Config IOMUX for FlexSPI2
@@ -458,7 +589,7 @@ void _FlexSPI2_SetPinForOctalMode()
     MEM_WriteU32(0x42A102FC, 0x00000008); // FLEXSPI2_A_SCLK
 }
 
-void _FLEXSPI2_ClockInit()
+void _FLEXSPI2_ClockInit_HyperRAM()
 {
     _WriteViaCM33AP32(0x54484350, 0x0);  // ROSC400M_CTRL1
     
@@ -466,7 +597,7 @@ void _FLEXSPI2_ClockInit()
     MEM_WriteU32(0x44450B00, 0x101);     // CLOCK_ROOT[22].CONTROL, FlexSPI2
 }
 
-void _FLEXSPI2_ModuleInit()
+void _FLEXSPI2_ModuleInit_HyperRAM()
 {
     // Config FlexSPI2 Registers
 
@@ -743,7 +874,7 @@ void CM33_Halt(void)
 
 void Flash_Init() {
     JLINK_SYS_Report("***************************************************");
-    JLINK_SYS_Report("Init Flash");
+    JLINK_SYS_Report("Init Flash via FlexSPI1");
 
     _FLEXSPI1_WaitBusIdle();
     _FLEXSPI1_ModuleReset();
@@ -755,17 +886,31 @@ void Flash_Init() {
     JLINK_SYS_Report("***************************************************");
 }
 
+void Flash2_Init() {
+    JLINK_SYS_Report("***************************************************");
+    JLINK_SYS_Report("Init Flash via FlexSPI2");
+
+    _FLEXSPI2_WaitBusIdle();
+    _FLEXSPI2_ModuleReset();
+
+    _FLEXSPI2_SetPinForQuadMode();
+    _FLEXSPI2_ClockInit_Flash();
+    _FLEXSPI2_ModuleInit_Flash();
+
+    JLINK_SYS_Report("***************************************************");
+}
+
 void HyperRAM_Init()
 {
     JLINK_SYS_Report("***************************************************");
-    JLINK_SYS_Report("Init HyperRAM");
+    JLINK_SYS_Report("Init HyperRAM via FlexSPI2");
 
     _FLEXSPI2_WaitBusIdle();
     _FLEXSPI2_ModuleReset();
 
     _FlexSPI2_SetPinForOctalMode();
-    _FLEXSPI2_ClockInit();
-    _FLEXSPI2_ModuleInit();
+    _FLEXSPI2_ClockInit_HyperRAM();
+    _FLEXSPI2_ModuleInit_HyperRAM();
 
     JLINK_SYS_Report("***************************************************");
 }
@@ -1034,8 +1179,8 @@ int AfterResetTarget(void)
         CM33_ClearNVIC();
     }
 
-    Flash_Init();
-    HyperRAM_Init();
+    Flash2_Init();
+    //HyperRAM_Init();
 
     return 0;
 }
