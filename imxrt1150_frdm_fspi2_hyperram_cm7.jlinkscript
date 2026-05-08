@@ -11,7 +11,7 @@ void InitSysPll2Pfd2()
 
     // ANADIG_PLL_PLL_528_PFD
     val = MEM_ReadU32(0x40C84270);
-    if (((val & 0x800000) != 0) || (((val & 0x3F0000) >> 16) != 16))
+    if (((val & 0x800000) != 0) || (((val & 0x3F0000) >> 16) != 29))
     {
         stable = val & 0x400000;
 
@@ -20,8 +20,8 @@ void InitSysPll2Pfd2()
 
         val = MEM_ReadU32(0x40C84270);
         val &= ~0x3F0000;
-		// frac = 16
-        val |= 16 << 16;
+		// frac = 29 (range 13-35)
+        val |= 29 << 16;
         MEM_WriteU32(0x40C84270, val);
 
         val = MEM_ReadU32(0x40C84250);
@@ -175,12 +175,12 @@ void Clock_Init()
     unsigned int val;
 
     InitSysPll2();
-    InitSysPll2Pfd1();
+    InitSysPll2Pfd2();
 
     // Set FLEXSPI2 root clock
     reg = 0x40CC1080;
-    // Use sys pll2 pfd2 divided by 3: 198Mhz
-    val = 0x602;
+    // Use sys pll2 pfd2 divided by 1: 327.72 MHz, which results FlexSPI to 163.86 MHz.
+    val = 0x600;
     MEM_WriteU32(reg, val);
 
   Report("Clock Init Done");
