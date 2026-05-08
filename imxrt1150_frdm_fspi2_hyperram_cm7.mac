@@ -67,7 +67,7 @@ initSysPll2Pfd2()
 {
     __var t, stable;
     t = __readMemory32(0x40C84270, "Memory");
-    if (((t & 0x800000) != 0) || (((t & 0x3F0000) >> 16) != 16))
+    if (((t & 0x800000) != 0) || (((t & 0x3F0000) >> 16) != 29))
     {
         stable = t & 0x400000;
 
@@ -76,7 +76,8 @@ initSysPll2Pfd2()
 
         t = __readMemory32(0x40C84270, "Memory");
         t &= ~0x3F0000;
-        t |= 16 << 16;
+		// frac = 29 (range 13-35)
+        t |= 29 << 16;
         __writeMemory32(t, 0x40C84270, "Memory");
 
         t = __readMemory32(0x40C84250, "Memory");
@@ -114,8 +115,8 @@ _clock_init()
 {
   initSysPll2();
   initSysPll2Pfd2();
-  // Set FlexSPI2 root clock to use sys pll2 pfd2 divided by 3: 198Mhz
-  __writeMemory32(0x602, 0x40cc0200, "Memory");
+  // Set FlexSPI2 root clock to use sys pll2 pfd2 divided by 1: 327.72 MHz, which results FlexSPI to 163.86 MHz.
+  __writeMemory32(0x600, 0x40cc0200, "Memory");
   
   __message "clock init done\n";
 }
