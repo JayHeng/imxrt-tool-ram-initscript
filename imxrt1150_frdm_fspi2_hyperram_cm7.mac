@@ -102,11 +102,11 @@ initSysPll2Pfd1()
 _Flexspi_reset()
 {
   __var reg;
-   reg = __readMemory32(0x402A8000, "Memory");
-  __writeMemory32((reg | 0x1), 0x402A8000, "Memory");   
+   reg = __readMemory32(0x400D0000, "Memory");
+  __writeMemory32((reg | 0x1), 0x400D0000, "Memory");   
   do
   {
-    reg = __readMemory32(0x402A8000, "Memory");
+    reg = __readMemory32(0x400D0000, "Memory");
   }while((reg & 0x1) != 0); 
 }
 
@@ -178,47 +178,47 @@ _hyper_Init()
   __writeMemory32(0x0A, 0x400E8348, "Memory");// EMC_B2_19
   __writeMemory32(0x0A, 0x400E834C, "Memory");// EMC_B2_20
 
-  // Config FlexSPI Registers
+  // Config FlexSPI2 Registers
 
-  __writeMemory32(0xFFFF80C0, 0x402A8000, "Memory"); // MCR0
+  __writeMemory32(0xFFFF80C0, 0x400D0000, "Memory"); // MCR0
   _Flexspi_reset();
-  __writeMemory32(0xFFFF3032, 0x402A8000, "Memory"); // MCR0
-  __writeMemory32(0xFFFFFFFF, 0x402A8004, "Memory"); // MCR1
-  __writeMemory32(0x200001F7, 0x402A8008, "Memory"); // MCR2
-  __writeMemory32(0x00000078, 0x402A800C, "Memory"); // AHBCR
-  __writeMemory32(0x80000020, 0x402A8020, "Memory"); // AHBRXBUFCR00
-  __writeMemory32(0x80000020, 0x402A8024, "Memory"); // AHBRXBUFCR01
-  __writeMemory32(0x80000020, 0x402A8028, "Memory"); // AHBRXBUFCR02
-  __writeMemory32(0x80000020, 0x402A802C, "Memory"); // AHBRXBUFCR03
-  __writeMemory32(0x00000000, 0x402A80B8, "Memory"); // IPRXFCR
-  __writeMemory32(0x00000000, 0x402A80BC, "Memory"); // IPTXFCR
-  __writeMemory32(0x00002000, 0x402A8060, "Memory"); // FLASHA1CR0
-  __writeMemory32(0x00021C63, 0x402A8070, "Memory"); // FLASHA1CR1
-  __writeMemory32(0x00000100, 0x402A8080, "Memory"); // FLASHA1CR2
-  __writeMemory32(0x00001D00, 0x402A80C0, "Memory"); // DLLCR
-  __writeMemory32(0x00000000, 0x402A8094, "Memory"); // FLASHA1CR4 
-  __writeMemory32(0x00000004, 0x402A8094, "Memory"); // FLASHA1CR4 
-  __writeMemory32(0xFFFF3030, 0x402A8000, "Memory"); // MCR0
-  __writeMemory32(0x5AF05AF0, 0x402A8018, "Memory"); // LUTKEY
-  __writeMemory32(0x00000002, 0x402A801C, "Memory"); // LUTCR
-  __writeMemory32(0x8B1887A0, 0x402A8200, "Memory"); // LUT[0]
-  __writeMemory32(0xB7078F10, 0x402A8204, "Memory"); // LUT[1]
-  __writeMemory32(0x0000A704, 0x402A8208, "Memory"); // LUT[2]
-  __writeMemory32(0x00000000, 0x402A820C, "Memory"); // LUT[3] 
-  __writeMemory32(0x8B188720, 0x402A8210, "Memory"); // LUT[4]
-  __writeMemory32(0xB7078F10, 0x402A8214, "Memory"); // LUT[5]
-  __writeMemory32(0x0000A304, 0x402A8218, "Memory"); // LUT[6]
-  __writeMemory32(0x00000000, 0x402A821C, "Memory"); // LUT[7]
-  __writeMemory32(0x8B1887E0, 0x402A8220, "Memory"); // LUT[8]
-  __writeMemory32(0xB7078F10, 0x402A8224, "Memory"); // LUT[9]
-  __writeMemory32(0x0000A704, 0x402A8228, "Memory"); // LUT[10]
-  __writeMemory32(0x00000000, 0x402A822C, "Memory"); // LUT[11]
-  __writeMemory32(0x8B188760, 0x402A8230, "Memory"); // LUT[12]
-  __writeMemory32(0xA3048F10, 0x402A8234, "Memory"); // LUT[13]
-  __writeMemory32(0x00000000, 0x402A8238, "Memory"); // LUT[14]
-  __writeMemory32(0x00000000, 0x402A823C, "Memory"); // LUT[15]
-  __writeMemory32(0x5AF05AF0, 0x402A8018, "Memory"); // LUTKEY
-  __writeMemory32(0x00000001, 0x402A801C, "Memory"); // LUTCR
+  __writeMemory32(0xFFFF3032, 0x400D0000, "Memory"); // MCR0
+  __writeMemory32(0xFFFFFFFF, 0x400D0004, "Memory"); // MCR1
+  __writeMemory32(0x200001F7, 0x400D0008, "Memory"); // MCR2
+  __writeMemory32(0x00000078, 0x400D000C, "Memory"); // AHBCR
+  __writeMemory32(0x80000020, 0x400D0020, "Memory"); // AHBRXBUFCR00
+  __writeMemory32(0x80000020, 0x400D0024, "Memory"); // AHBRXBUFCR01
+  __writeMemory32(0x80000020, 0x400D0028, "Memory"); // AHBRXBUFCR02
+  __writeMemory32(0x80000020, 0x400D002C, "Memory"); // AHBRXBUFCR03
+  __writeMemory32(0x00000000, 0x400D00B8, "Memory"); // IPRXFCR
+  __writeMemory32(0x00000000, 0x400D00BC, "Memory"); // IPTXFCR
+  __writeMemory32(0x00002000, 0x400D0060, "Memory"); // FLASHA1CR0
+  __writeMemory32(0x00021C63, 0x400D0070, "Memory"); // FLASHA1CR1
+  __writeMemory32(0x00000100, 0x400D0080, "Memory"); // FLASHA1CR2
+  __writeMemory32(0x00001D00, 0x400D00C0, "Memory"); // DLLCR
+  __writeMemory32(0x00000000, 0x400D0094, "Memory"); // FLASHA1CR4 
+  __writeMemory32(0x00000004, 0x400D0094, "Memory"); // FLASHA1CR4 
+  __writeMemory32(0xFFFF3030, 0x400D0000, "Memory"); // MCR0
+  __writeMemory32(0x5AF05AF0, 0x400D0018, "Memory"); // LUTKEY
+  __writeMemory32(0x00000002, 0x400D001C, "Memory"); // LUTCR
+  __writeMemory32(0x8B1887A0, 0x400D0200, "Memory"); // LUT[0]
+  __writeMemory32(0xB7078F10, 0x400D0204, "Memory"); // LUT[1]
+  __writeMemory32(0x0000A704, 0x400D0208, "Memory"); // LUT[2]
+  __writeMemory32(0x00000000, 0x400D020C, "Memory"); // LUT[3] 
+  __writeMemory32(0x8B188720, 0x400D0210, "Memory"); // LUT[4]
+  __writeMemory32(0xB7078F10, 0x400D0214, "Memory"); // LUT[5]
+  __writeMemory32(0x0000A304, 0x400D0218, "Memory"); // LUT[6]
+  __writeMemory32(0x00000000, 0x400D021C, "Memory"); // LUT[7]
+  __writeMemory32(0x8B1887E0, 0x400D0220, "Memory"); // LUT[8]
+  __writeMemory32(0xB7078F10, 0x400D0224, "Memory"); // LUT[9]
+  __writeMemory32(0x0000A704, 0x400D0228, "Memory"); // LUT[10]
+  __writeMemory32(0x00000000, 0x400D022C, "Memory"); // LUT[11]
+  __writeMemory32(0x8B188760, 0x400D0230, "Memory"); // LUT[12]
+  __writeMemory32(0xA3048F10, 0x400D0234, "Memory"); // LUT[13]
+  __writeMemory32(0x00000000, 0x400D0238, "Memory"); // LUT[14]
+  __writeMemory32(0x00000000, 0x400D023C, "Memory"); // LUT[15]
+  __writeMemory32(0x5AF05AF0, 0x400D0018, "Memory"); // LUTKEY
+  __writeMemory32(0x00000001, 0x400D001C, "Memory"); // LUTCR
  
   _Flexspi_reset();
   
