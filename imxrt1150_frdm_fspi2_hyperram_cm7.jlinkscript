@@ -4,41 +4,42 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-void InitSysPll2Pfd1()
+void InitSysPll2Pfd2()
 {
     unsigned int val;
     unsigned int stable;
 
     // ANADIG_PLL_PLL_528_PFD
     val = MEM_ReadU32(0x40C84270);
-    if (((val & 0x8000) != 0) || (((val & 0x3F00) >> 8) != 16))
+    if (((val & 0x800000) != 0) || (((val & 0x3F0000) >> 16) != 16))
     {
-        stable = val & 0x4000;
+        stable = val & 0x400000;
 
-        val |= 0x8000;
+        val |= 0x800000;
         MEM_WriteU32(0x40C84270, val);
 
         val = MEM_ReadU32(0x40C84270);
-        val &= ~0x3F00;
-        val |= 16 << 8;
+        val &= ~0x3F0000;
+		// frac = 16
+        val |= 16 << 16;
         MEM_WriteU32(0x40C84270, val);
 
         val = MEM_ReadU32(0x40C84250);
-        val ^= 0x4;
+        val ^= 0x8;
         MEM_WriteU32(0x40C84250, val);
 
         val = MEM_ReadU32(0x40C84270);
-        val &= ~0x8000;
+        val &= ~0x800000;
         MEM_WriteU32(0x40C84270, val);
         do
         {
-            val = MEM_ReadU32(0x40C84270) & 0x4000;
+            val = MEM_ReadU32(0x40C84270) & 0x400000;
         } while (val == stable);
     }
     else
     {
-        Report("syspll2 pfd1 has been initialized already");
-        val &= ~0x8000;
+        Report("syspll2 pfd2 has been initialized already");
+        val &= ~0x800000;
         MEM_WriteU32(0x40C84270, val);
     }
 }
@@ -170,39 +171,17 @@ void _Flexspi_reset()
 
 void Clock_Init() 
 {
-  unsigned int reg;
-  // Enable all clocks
-  MEM_WriteU32(0x400FC068,0xffffffff);  //CCM_CCGR0
-  MEM_WriteU32(0x400FC06C,0xffffffff);
-  MEM_WriteU32(0x400FC070,0xffffffff);
-  MEM_WriteU32(0x400FC074,0xffffffff);
-  MEM_WriteU32(0x400FC078,0xffffffff);
-  MEM_WriteU32(0x400FC07C,0xffffffff);
-  MEM_WriteU32(0x400FC080,0xffffffff);
-  MEM_WriteU32(0x400FC084,0xffffffff);   //CCM_CCGR7
-  
-  //MEM_WriteU32(0x400FC084,0xffffffff);
+    unsigned int reg;
+    unsigned int val;
 
-  // Config PLL for FlexSPI
-  // PERCLK_PODF: 1 divide by 2       			//same as RT1050
-  MEM_WriteU32(0x400FC01C, 0x04900001);
-  // Enable SYS PLL but keep it bypassed.
-  MEM_WriteU32(0x400D8030, 0x00012001);
-  do
-  {
-    reg = MEM_ReadU32(0x400D8030);
-  }while((reg & 0x80000000) == 0);
-  // Disable bypass of SYS PLL
-  MEM_WriteU32(0x400D8030, 0x00002001);			// Changes form 24MHz -> 327.72 MHz, which results FlexSPI to 163.86 MHz.
-  
-  // PFD2_FRAC: 29(0x1D), PLL2 PFD2=528*18/PFD2_FRAC=327
-  // Ungate SYS PLL PFD2
-  reg = MEM_ReadU32(0x400D8100);
-  reg &= ~0xBF0000;
-  reg |= 0x1D0000;
-  MEM_WriteU32(0x400D8100, reg);
+    InitSysPll2();
+    InitSysPll2Pfd1();
 
-  MEM_WriteU32(0x400FC01C, 0x44100001);//divide by 1; 
+    // Set FLEXSPI2 root clock
+    reg = 0x40CC1080;
+    // Use sys pll2 pfd2 divided by 3: 198Mhz
+    val = 0x602;
+    MEM_WriteU32(reg, val);
 
   Report("Clock Init Done");
 }
