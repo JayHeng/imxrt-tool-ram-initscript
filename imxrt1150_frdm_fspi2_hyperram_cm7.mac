@@ -63,38 +63,38 @@ initSysPll2()
 }
 
 
-initSysPll2Pfd1()
+initSysPll2Pfd2()
 {
     __var t, stable;
     t = __readMemory32(0x40C84270, "Memory");
-    if (((t & 0x8000) != 0) || (((t & 0x3F00) >> 8) != 16))
+    if (((t & 0x800000) != 0) || (((t & 0x3F0000) >> 16) != 16))
     {
-        stable = t & 0x4000;
+        stable = t & 0x400000;
 
-        t |= 0x8000;
+        t |= 0x800000;
         __writeMemory32(t, 0x40C84270, "Memory");
 
         t = __readMemory32(0x40C84270, "Memory");
-        t &= ~0x3F00;
-        t |= 16 << 8;
+        t &= ~0x3F0000;
+        t |= 16 << 16;
         __writeMemory32(t, 0x40C84270, "Memory");
 
         t = __readMemory32(0x40C84250, "Memory");
-        t ^= 0x4;
+        t ^= 0x8;
         __writeMemory32(t, 0x40C84250, "Memory");
 
         t = __readMemory32(0x40C84270, "Memory");
-        t &= ~0x8000;
+        t &= ~0x800000;
         __writeMemory32(t, 0x40C84270, "Memory");
 
         do
         {
-            t = __readMemory32(0x40C84270, "Memory") & 0x4000;
+            t = __readMemory32(0x40C84270, "Memory") & 0x400000;
         } while (t == stable);
     }
     else
     {
-        t &= ~0x8000;
+        t &= ~0x800000;
         __writeMemory32(t, 0x40C84270, "Memory");
     }
 }
@@ -112,34 +112,10 @@ _Flexspi_reset()
 
 _clock_init()
 {
-  __var reg;
-  // Enable all clocks
-  __writeMemory32(0xffffffff, 0x400FC068, "Memory");
-  __writeMemory32(0xffffffff, 0x400FC06C, "Memory");
-  __writeMemory32(0xffffffff, 0x400FC070, "Memory");
-  __writeMemory32(0xffffffff, 0x400FC074, "Memory");
-  __writeMemory32(0xffffffff, 0x400FC078, "Memory");
-  __writeMemory32(0xffffffff, 0x400FC07C, "Memory");
-  __writeMemory32(0xffffffff, 0x400FC080, "Memory");
-  //__writeMemory32(0xffffffff, 0x400FC084, "Memory");
-
-  // Config PLL for FlexSPI
-  // PERCLK_PODF: 1 divide by 2
-  __writeMemory32(0x04900001, 0x400FC01C, "Memory");
-  // Enable SYS PLL but keep it bypassed.
-  __writeMemory32(0x00012001, 0x400D8030, "Memory");
-  do
-  {
-    reg = __readMemory32(0x400D8030, "Memory");
-  }while((reg & 0x80000000) == 0);
-  // Disable bypass of SYS PLL
-  __writeMemory32(0x00002001, 0x400D8030, "Memory");
-  
-  // PFD2_FRAC: 29, PLL2 PFD2=528*18/PFD2_FRAC=327
-  // Ungate SYS PLL PFD2
-  __writeMemory32(0x001D0000, 0x400D8100, "Memory");
-  
-  __writeMemory32(0x44100001, 0x400FC01C, "Memory");//divide by 1
+  initSysPll2();
+  initSysPll2Pfd2();
+  // Set FlexSPI2 root clock to use sys pll2 pfd2 divided by 3: 198Mhz
+  __writeMemory32(0x602, 0x40cc0200, "Memory");
   
   __message "clock init done\n";
 }
