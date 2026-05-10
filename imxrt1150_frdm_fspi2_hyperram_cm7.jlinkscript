@@ -192,7 +192,7 @@ void Clock_Init()
     InitSysPll2Pfd2();
 
     // Set FLEXSPI2 root clock
-    reg = 0x40CC1080;
+    reg = 0x40CC0A80;
     // Use sys pll2 pfd2 divided by 1: 327.72 MHz, which results FlexSPI to 163.86 MHz.
     val = 0x600;
     MEM_WriteU32(reg, val);
