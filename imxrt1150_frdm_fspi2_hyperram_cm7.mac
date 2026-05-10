@@ -123,6 +123,8 @@ _clock_init()
 
 _hyper_Init()
 {
+  __var reg;
+
   // Config IOMUX for HyperRAM
   __writeMemory32(0x00000014, 0x400E80E0, "Memory");// EMC_B2_10
   __writeMemory32(0x00000000, 0x400E858C, "Memory");
@@ -157,24 +159,30 @@ _hyper_Init()
 
   // Config FlexSPI2 Registers
 
-  __writeMemory32(0xFFFF80C0, 0x400D0000, "Memory"); // MCR0
+   reg = __readMemory32(0x400D0000, "Memory");
+  __writeMemory32((reg & 0xFFFFFFFD), 0x400D0000, "Memory");   
   _Flexspi_reset();
+  
   __writeMemory32(0xFFFF3032, 0x400D0000, "Memory"); // MCR0
   __writeMemory32(0xFFFFFFFF, 0x400D0004, "Memory"); // MCR1
   __writeMemory32(0x200001F7, 0x400D0008, "Memory"); // MCR2
   __writeMemory32(0x00000078, 0x400D000C, "Memory"); // AHBCR
-  __writeMemory32(0x80000020, 0x400D0020, "Memory"); // AHBRXBUFCR00
-  __writeMemory32(0x80000020, 0x400D0024, "Memory"); // AHBRXBUFCR01
-  __writeMemory32(0x80000020, 0x400D0028, "Memory"); // AHBRXBUFCR02
-  __writeMemory32(0x80000020, 0x400D002C, "Memory"); // AHBRXBUFCR03
+  __writeMemory32(0x800F0000, 0x400D0020, "Memory"); // AHBRXBUFCR00
+  __writeMemory32(0x800F0000, 0x400D0024, "Memory"); // AHBRXBUFCR01
+  __writeMemory32(0x800F0000, 0x400D0028, "Memory"); // AHBRXBUFCR02
+  __writeMemory32(0x800F0000, 0x400D002C, "Memory"); // AHBRXBUFCR03
+  __writeMemory32(0x800F0000, 0x400D0030, "Memory"); // AHBRXBUFCR04
+  __writeMemory32(0x800F0000, 0x400D0034, "Memory"); // AHBRXBUFCR05
+  __writeMemory32(0x80000020, 0x400D0038, "Memory"); // AHBRXBUFCR06
+  __writeMemory32(0x80000020, 0x400D003C, "Memory"); // AHBRXBUFCR07
   __writeMemory32(0x00000000, 0x400D00B8, "Memory"); // IPRXFCR
   __writeMemory32(0x00000000, 0x400D00BC, "Memory"); // IPTXFCR
   __writeMemory32(0x00002000, 0x400D0060, "Memory"); // FLASHA1CR0
   __writeMemory32(0x00021C63, 0x400D0070, "Memory"); // FLASHA1CR1
   __writeMemory32(0x00000100, 0x400D0080, "Memory"); // FLASHA1CR2
-  __writeMemory32(0x00001D00, 0x400D00C0, "Memory"); // DLLCR
-  __writeMemory32(0x00000000, 0x400D0094, "Memory"); // FLASHA1CR4 
-  __writeMemory32(0x00000004, 0x400D0094, "Memory"); // FLASHA1CR4 
+  __writeMemory32(0x00000079, 0x400D00C0, "Memory"); // DLLCR
+  __writeMemory32(0x000000C2, 0x400D0094, "Memory"); // FLASHA1CR4 
+  __writeMemory32(0x000000C6, 0x400D0094, "Memory"); // FLASHA1CR4 
   __writeMemory32(0xFFFF3030, 0x400D0000, "Memory"); // MCR0
   __writeMemory32(0x5AF05AF0, 0x400D0018, "Memory"); // LUTKEY
   __writeMemory32(0x00000002, 0x400D001C, "Memory"); // LUTCR
