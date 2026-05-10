@@ -177,7 +177,7 @@ _hyper_Init()
   __writeMemory32(0x80000020, 0x400D003C, "Memory"); // AHBRXBUFCR07
   __writeMemory32(0x00000000, 0x400D00B8, "Memory"); // IPRXFCR
   __writeMemory32(0x00000000, 0x400D00BC, "Memory"); // IPTXFCR
-  __writeMemory32(0x00002000, 0x400D0060, "Memory"); // FLASHA1CR0
+  __writeMemory32(0x00008000, 0x400D0060, "Memory"); // FLASHA1CR0, 0x00002000 - 8MB, 0x00008000 - 32MB
   __writeMemory32(0x00021C63, 0x400D0070, "Memory"); // FLASHA1CR1
   __writeMemory32(0x00000100, 0x400D0080, "Memory"); // FLASHA1CR2
   __writeMemory32(0x00000079, 0x400D00C0, "Memory"); // DLLCR
