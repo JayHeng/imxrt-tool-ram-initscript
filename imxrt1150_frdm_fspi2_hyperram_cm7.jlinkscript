@@ -169,6 +169,20 @@ void _Flexspi_reset()
   }while((reg & 0x1) != 0); 
 }
 
+void _Flexspi_WaitBusIdle()
+{
+    unsigned int reg;
+
+    reg = MEM_ReadU32(0x400D0000);
+    if( (reg & 0x02) == 0)  // Module Enabled
+    {
+        do
+        {
+            reg = MEM_ReadU32(0x400D00E0);
+        } while ((reg & 0x3) != 0x3);
+    }
+}
+
 void Clock_Init() 
 {
     unsigned int reg;
@@ -188,28 +202,38 @@ void Clock_Init()
 
 void _hyper_Init()
 {
-  // Config FlexSPI2 Registers								
-
-  MEM_WriteU32(0x400D0000, 0xFFFF80C0); // MCR0				// 0xffff80c0 
+  // Config FlexSPI2 Registers		
+  
+  unsigned int reg;
+  reg = MEM_ReadU32(0x400D0000);
+  MEM_WriteU32(0x400D0000, (reg & 0xFFFFFFFD));
   _Flexspi_reset();
+
   MEM_WriteU32(0x400D0000, 0xFFFF3032); // MCR0				// 0xffff3032
   MEM_WriteU32(0x400D0004, 0xFFFFFFFF); // MCR1				// 0xffffffff
   MEM_WriteU32(0x400D0008, 0x200001f7); // MCR2				// 0x200001F7
-  MEM_WriteU32(0x400D000C, 0x00000038); // AHBCR			// 0x00000078
-  MEM_WriteU32(0x400D0020, 0x80000020); // AHBRXBUFCR00		
-  MEM_WriteU32(0x400D0024, 0x80000020); // AHBRXBUFCR01		
-  MEM_WriteU32(0x400D0028, 0x80000020); // AHBRXBUFCR02		
-  MEM_WriteU32(0x400D002C, 0x80000020); // AHBRXBUFCR03		
+  MEM_WriteU32(0x400D000C, 0x00000078); // AHBCR			// 0x00000078
+  MEM_WriteU32(0x400D0020, 0x800F0000); // AHBRXBUF0CR0
+  MEM_WriteU32(0x400D0024, 0x800F0000); // AHBRXBUF1CR0
+  MEM_WriteU32(0x400D0028, 0x800F0000); // AHBRXBUF2CR0
+  MEM_WriteU32(0x400D002C, 0x800F0000); // AHBRXBUF3CR0
+  MEM_WriteU32(0x400D0030, 0x800F0000); // AHBRXBUF4CR0
+  MEM_WriteU32(0x400D0034, 0x800F0000); // AHBRXBUF5CR0
+  MEM_WriteU32(0x400D0038, 0x80000020); // AHBRXBUF6CR0
+  MEM_WriteU32(0x400D003C, 0x80000020); // AHBRXBUF7CR0
   MEM_WriteU32(0x400D00B8, 0x00000000); // IPRXFCR			// 0x00000000
   MEM_WriteU32(0x400D00BC, 0x00000000); // IPTXFCR			// 0x00000000
+
   MEM_WriteU32(0x400D0060, 0x00002000); // FLASHA1CR0		// 0x00002000
   MEM_WriteU32(0x400D0070, 0x00021C63); // FLASHA1CR1		// 0x00021c63
   MEM_WriteU32(0x400D0080, 0x00000100); // FLASHA1CR2		// 0x00000100
-  MEM_WriteU32(0x400D00C0, 0x00000079); // DLLCR			// 0x00000079
+
+  MEM_WriteU32(0x400D00C0, 0x00000079); // DLLCRA			// 0x00000079
 //  MEM_WriteU32(0x400D00C0, 0x00001D00); // DLLCR			// 
-  MEM_WriteU32(0x400D0094, 0x00000000); // FLASHA1CR4 		// 
-  MEM_WriteU32(0x400D0094, 0x00000004); // FLASHA1CR4 		// 0x00000004
+  MEM_WriteU32(0x400D0094, 0x000000C2); // FLASHA1CR4 		// 
+  MEM_WriteU32(0x400D0094, 0x000000C6); // FLASHA1CR4 		//
   MEM_WriteU32(0x400D0000, 0xFFFF3030); // MCR0				// 0xffff3030	/* Exit stop mode. */
+
   MEM_WriteU32(0x400D0018, 0x5AF05AF0); // LUTKEY			// 0x5af05af0
   MEM_WriteU32(0x400D001C, 0x00000002); // LUTCR			// 0x00000002
   MEM_WriteU32(0x400D0200, 0x8b1887a0); // LUT[0]			//0x8B1887A0   
@@ -234,7 +258,7 @@ void _hyper_Init()
   MEM_WriteU32(0x400D024C, 0x00000000); // LUT[19]		//0x00000000
   MEM_WriteU32(0x400D0018, 0x5AF05AF0); // LUTKEY			//0x5AF05AF0
   MEM_WriteU32(0x400D001C, 0x00000001); // LUTCR			//0x00000001
- 
+
   _Flexspi_reset();
   
   Report("HyperRAM init done\n");
